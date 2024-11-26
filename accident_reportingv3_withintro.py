@@ -79,14 +79,16 @@ def get_trailer():
 # Load Information
 def load_information():
     manifest_number = input("Enter manifest number: ")
-    origin = input("Enter load origin: ")
-    destination = input("Enter load destination: ")
-    return {
-        "manifest_number": manifest_number,
-        "origin": origin,
-        "destination": destination,
-    }
-    
+    if manifest_number:
+        origin = input("Enter load origin: ")
+        destination = input("Enter load destination: ")
+        return {
+            "manifest_number": manifest_number,
+            "origin": origin,
+            "destination": destination,
+        }
+    return {"manifest_number: False"}
+
 # V1 Driver Information
 def get_v1_driver():
     driver_name = input("Enter V1 driver name: ").strip()
@@ -112,6 +114,45 @@ def get_v1_codriver():
         }
     return {
         "codriver_present": False
+    }
+    
+# V2 Driver Information
+def v2_driver(v2_name, v2_phone, v2_passengers, v2_injuries, v2_injury_description):
+    v2_name = input("Enter V2 name: ").strip()
+    v2_phone = input("Enter V2 phone number: ").strip()
+    v2_passengers = get_yes_no("Is V2 driver injured? (y/n): ")
+    v2_injuries = get_yes_no("Is the driver or passenger(s) reporting injury? (y/n): ")
+    if v2_injuries:
+        v2_injury_description = input("Describe V2 driver or passenger injury: ")
+        return {
+            "v2 name" : v2_name,
+            "v2_phone": v2_phone,
+            "v2_passengers": v2_passengers,
+            "v2_injury_description" : v2_injury_description
+        }
+    return {"V2 Injuries": False}
+
+# V2 Vehicle Information
+def v2_vehicle(v2_plate_number, v2_plate_state, v2_make, v2_model, v2_year, v2_damage, v2_tow):
+    v2_make = input("Choose or enter a V2 make: ").strip()
+    v2_plate_number = input("Enter V2 plate number: ").strip()
+    v2_model = input("Choose or enter a V2 model").strip()
+    v2_year = input("Enter V2 model year: ")
+    v2_tow = get_yes_no("Does V2 require a tow? (y/n): ")
+    v2_damage = input("Describe V2 damage: ").strip()
+    return {
+        "v2_make": v2_make,
+        "v2_plate_number": v2_plate_number,
+        "v2_model": v2_model,
+        "v2_year": v2_year, 
+        "v2_tow": v2_tow,
+        "v2_damage": v2_damage,
+    }
+
+def additional_remarks(additional_remarks):
+    additional_remarks = input("Enter any additional remarks: ").strip()
+    return {
+        "additional_remarks": additional_remarks
     }
 
 # Collect Accident Data
@@ -192,14 +233,29 @@ def main():
     else:
         print("\nSkipping SOP tutorial. Proceeding to the form...")
     
-    # Collect and display accident data
-    accident_data = collect_accident_data()
-    print("\nCollected Accident Data:")
-    for key, value in accident_data.items():
-        print(f"{key}: {value}")
-        # print("\nCollected Accident Data:")
-        # print(json.dumps(accident_data, indent=4))
+    
+# Preprocess and serialize
+# def preprocess_data(data):
+#     if isinstance(data, dict):
+#         return {key: preprocess_data(value) for key, value in data.items()}
+#     elif isinstance(data, list):
+#         return [preprocess_data(item) for item in data]
+#     elif isinstance(data, datetime.date):
+#         return data.strftime("%Y-%m-%d")
+#     return data
 
+
+# Collect and display accident data
+# accident_data = collect_accident_data()
+# processed_data = preprocess_data(accident_data)
+# print("\nCollected Accident Data:")
+# print(json.dumps(accident_data, indent=4))
+
+# Collect and display accident data
+accident_data = collect_accident_data()
+print("\nCollected Accident Data:")
+for key, value in accident_data.items():
+    print(f"{key}: {value}")
 
 # Run the Program
 if __name__ == "__main__":
