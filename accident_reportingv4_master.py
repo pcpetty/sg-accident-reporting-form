@@ -4,7 +4,6 @@ import inquirer
 import json
 import PyQt6
 
-
 # Date input function
 def get_date():
     while True:
@@ -117,7 +116,7 @@ def get_v1_codriver():
     }
     
 # V2 Driver Information
-def v2_driver(v2_name, v2_phone, v2_passengers, v2_injuries, v2_injury_description):
+def get_v2_driver(v2_name, v2_phone, v2_passengers, v2_injuries, v2_injury_description):
     v2_name = input("Enter V2 name: ").strip()
     v2_phone = input("Enter V2 phone number: ").strip()
     v2_passengers = get_yes_no("Is V2 driver injured? (y/n): ")
@@ -133,7 +132,7 @@ def v2_driver(v2_name, v2_phone, v2_passengers, v2_injuries, v2_injury_descripti
     return {"V2 Injuries": False}
 
 # V2 Vehicle Information
-def v2_vehicle(v2_plate_number, v2_plate_state, v2_make, v2_model, v2_year, v2_damage, v2_tow):
+def get_v2_vehicle(v2_plate_number, v2_plate_state, v2_make, v2_model, v2_year, v2_damage, v2_tow):
     v2_make = input("Choose or enter a V2 make: ").strip()
     v2_plate_number = input("Enter V2 plate number: ").strip()
     v2_model = input("Choose or enter a V2 model").strip()
@@ -164,8 +163,10 @@ def collect_accident_data():
     accident_data["accident_time"] = get_time()
     accident_data["accident_location"] = input("Enter accident location or address: ")
     accident_data["hazmat"] = get_yes_no("Hazmat? (y/n): ")
-    accident_data["V1 Driver"] = get_v1_driver()
-    accident_data["V1 Co-Driver"] = get_v1_codriver()
+    accident_data["v1_driver"] = get_v1_driver()
+    accident_data["v1_codriver"] = get_v1_codriver()
+    accident_data["v2_driver"] = get_v2_driver()
+    accident_data["v2_vehicle"] = get_v2_vehicle()
     # Weather and Road Conditions
     accident_data["weather_info"] = get_condition("weather_conditions", ['Clear', 'Overcast', 'Sunny', 'Rainy', 'Windy', 'Stormy'])
     accident_data["road_conditions"] = get_condition("road_conditions", ['Wet', 'Dry', 'Snowy', 'Icy'])
@@ -202,10 +203,10 @@ def collect_accident_data():
 
     # Load Information
     accident_data["load_info"] = load_information()
+    accident_data["additional_remarks"] = additional_remarks()
 
     return accident_data
 
-# Main Function
 def main():
     print("Safety Generalist Accident Report Form")
     
@@ -232,36 +233,18 @@ def main():
             print("\nTutorial Complete. Proceeding to the form...")
     else:
         print("\nSkipping SOP tutorial. Proceeding to the form...")
-    
-    
-# Preprocess and serialize
-# def preprocess_data(data):
-#     if isinstance(data, dict):
-#         return {key: preprocess_data(value) for key, value in data.items()}
-#     elif isinstance(data, list):
-#         return [preprocess_data(item) for item in data]
-#     elif isinstance(data, datetime.date):
-#         return data.strftime("%Y-%m-%d")
-#     return data
 
-
-# Collect and display accident data
-# accident_data = collect_accident_data()
-# processed_data = preprocess_data(accident_data)
-# print("\nCollected Accident Data:")
-# print(json.dumps(accident_data, indent=4))
-
-# Collect and display accident data
-accident_data = collect_accident_data()
-print("\nCollected Accident Data:")
-for key, value in accident_data.items():
-    print(f"{key}: {value}")
+    # Collect and display accident data
+    accident_data = collect_accident_data()
+    print("\nCollected Accident Data:")
+    for key, value in accident_data.items():
+        print(f"{key}: {value}")
 
 # Run the Program
 if __name__ == "__main__":
     main()
-    
-    
+
+
 #-------------------------------------------------------------------------------------
 # -- SG Accident Reporting Overhaul --
 # Needs:
