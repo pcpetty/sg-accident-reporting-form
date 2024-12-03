@@ -59,6 +59,120 @@ def insert_into_postgresql(data):
     finally:
         conn.close()
 
+# ---- DRIVER ID INTEGRATION ---- #
+# Insert or Get Driver ID
+def get_or_create_driver(name, phone, license_number, license_expiry):
+    conn = connect_postgresql()
+    if not conn:
+        return None
+    try:
+        with conn.cursor() as cursor:
+            # Check if driver exists
+            cursor.execute(
+                "SELECT driver_id FROM drivers WHERE license_number = %s",
+                (license_number,)
+            )
+            driver = cursor.fetchone()
+            if driver:
+                return driver[0]
+
+            # Insert new driver
+            cursor.execute(
+                """
+                INSERT INTO drivers (name, phone_number, license_number, license_expiry)
+                VALUES (%s, %s, %s, %s) RETURNING driver_id
+                """,
+                (name, phone, license_number, license_expiry)
+            )
+            conn.commit()
+            return cursor.fetchone()[0]
+    except Exception as e:
+        print(f"Error handling driver data: {e}")
+    finally:
+        conn.close()
+        
+def get_driver():
+    """
+    Collects or retrieves driver details and ensures the driver exists in the database.
+    """
+    print("\n--- Enter Driver Details ---")
+    driver_name = input("Driver name: ").strip()
+    driver_phone = input("Driver phone number: ").strip()
+    license_number = input("Driver license number: ").strip()
+    license_expiry = validate_date("License expiry date (MM/DD/YYYY): ")
+
+    # Use or create driver in the database
+    driver_id = get_or_create_driver(driver_name, driver_phone, license_number, license_expiry)
+    if not driver_id:
+        print("Error: Could not retrieve or create driver.")
+        return None
+
+    return {
+        "driver_id": driver_id,
+        "driver_name": driver_name,
+        "driver_phone": driver_phone,
+        "license_number": license_number,
+        "license_expiry": license_expiry,
+    }
+
+# Insert or Get Vehicle ID
+def get_or_create_vehicle(plate_number, make, model, year, color):
+    conn = connect_postgresql()
+    if not conn:
+        return None
+    try:
+        with conn.cursor() as cursor:
+            # Check if vehicle exists
+            cursor.execute(
+                "SELECT vehicle_id FROM vehicles WHERE plate_number = %s",
+                (plate_number,)
+            )
+            vehicle = cursor.fetchone()
+            if vehicle:
+                return vehicle[0]
+
+            # Insert new vehicle
+            cursor.execute(
+                """
+                INSERT INTO vehicles (plate_number, make, model, year, color)
+                VALUES (%s, %s, %s, %s, %s) RETURNING vehicle_id
+                """,
+                (plate_number, make, model, year, color)
+            )
+            conn.commit()
+            return cursor.fetchone()[0]
+    except Exception as e:
+        print(f"Error handling vehicle data: {e}")
+    finally:
+        conn.close()
+        
+def get_vehicle():
+    """
+    Collects or retrieves vehicle details and ensures the vehicle exists in the database.
+    """
+    print("\n--- Enter Vehicle Details ---")
+    plate_number = input("License plate number: ").strip()
+    make = input("Vehicle make (e.g., Toyota, Ford): ").strip()
+    model = input("Vehicle model (e.g., Camry, F-150): ").strip()
+    year = input("Vehicle year: ").strip()
+    color = input("Vehicle color: ").strip()
+
+    # Use or create vehicle in the database
+    vehicle_id = get_or_create_vehicle(plate_number, make, model, year, color)
+    if not vehicle_id:
+        print("Error: Could not retrieve or create vehicle.")
+        return None
+
+    return {
+        "vehicle_id": vehicle_id,
+        "plate_number": plate_number,
+        "make": make,
+        "model": model,
+        "year": year,
+        "color": color,
+    }
+        
+# ---- ASSET ID INTEGRATION ---- # 
 
 # ---- File Management ---- # 
 
@@ -76,7 +190,75 @@ def save_to_json(data, filename="accident_report.json"):
         print(f"Data successfully saved to {filename}")
     except Exception as e:
         print(f"Error saving to JSON: {e}")
-        
+
+# ---- EXPORT TO EXCEL ---- # 
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
+from openpyxl.chart import BarChart, Reference
+
+def export_to_excel(data, filename="Accident_Report.xlsx"):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Accident Report"
+
+    # Add headers
+    headers = ["Reference Key", "Accident Date", "Accident Time", "Location", "Hazmat", "Driver Name", "Vehicle Plate"]
+    ws.append(headers)
+
+    # Add data
+    ws.append([
+        data["reference_key"],
+        data["accident_date"],
+        data["accident_time"],
+        data["accident_location"],
+        "Yes" if data["hazmat"] else "No",
+        data["driver_id"],  # Replace with a query to fetch driver name
+        data["vehicle_id"]  # Replace with a query to fetch vehicle plate
+    ])
+
+    # Style headers
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center")
+
+    # Add chart (example: Hazmat incidents)
+    chart = BarChart()
+    chart.title = "Hazmat Incidents"
+    chart.x_axis.title = "Reference Key"
+    chart.y_axis.title = "Count"
+    data = Reference(ws, min_col=5, min_row=1, max_row=ws.max_row, max_col=5)
+    chart.add_data(data, titles_from_data=True)
+    ws.add_chart(chart, "H10")
+
+    wb.save(filename)
+    print(f"Excel report saved as {filename}.")
+
+# ---- EXPORT TO PDF ----#
+
+from fpdf import FPDF
+
+def export_to_pdf(data, filename="Accident_Report.pdf"):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    # Title
+    pdf.set_font("Arial", style="B", size=16)
+    pdf.cell(200, 10, txt="Accident Report", ln=True, align="C")
+
+    # Report Details
+    pdf.set_font("Arial", size=12)
+    for key, value in data.items():
+        pdf.cell(200, 10, txt=f"{key}: {value}", ln=True)
+
+    pdf.output(filename)
+    print(f"PDF report saved as {filename}.")
+
+
+# ---- ---- # 
+
+
 # ---- CLEAN UP SQL FORMAT ---- #
 def clean_field(value, default="Not Provided"):
     return value if value else default
@@ -271,15 +453,15 @@ def get_condition(condition_type, choices):
         return None
 
 # Truck Information
-def get_truck():
-    truck_number = input("Enter truck number: ")
-    truck_type = get_condition("truck_type", ['Tractor Trailer', 'Straight Truck', 'Van'])
-    truck_cameras = get_yes_no("Does the truck have cameras? (y/n): ")
-    return {
-        "truck_number": truck_number,
-        "truck_type": truck_type,
-        "truck_cameras": truck_cameras,
-    }
+# def get_truck():
+#     truck_number = input("Enter truck number: ")
+#     truck_type = get_condition("truck_type", ['Tractor Trailer', 'Straight Truck', 'Van'])
+#     truck_cameras = get_yes_no("Does the truck have cameras? (y/n): ")
+#     return {
+#         "truck_number": truck_number,
+#         "truck_type": truck_type,
+#         "truck_cameras": truck_cameras,
+#     }
 
 # Trailer Information
 def get_trailer():
@@ -307,16 +489,17 @@ def load_information():
         }
     return {"manifest_number: False"}
 
+# Redundancy corrected in above get_driver() section.
 # V1 Driver Information
-def get_v1_driver():
-    driver_name = input("Enter V1 driver name: ").strip()
-    driver_phone = input("Enter V1 driver phone number: ").strip()
-    driver_injury = get_yes_no(f"Is {driver_name} injured? (y/n): ")
-    return {
-        "driver_name": driver_name,
-        "driver_phone": driver_phone,
-        "driver_injury": driver_injury,
-    }
+# def get_v1_driver():
+#     driver_name = input("Enter V1 driver name: ").strip()
+#     driver_phone = input("Enter V1 driver phone number: ").strip()
+#     driver_injury = get_yes_no(f"Is {driver_name} injured? (y/n): ")
+#     return {
+#         "driver_name": driver_name,
+#         "driver_phone": driver_phone,
+#         "driver_injury": driver_injury,
+#     }
 
 # # Co-Driver Information
 def get_v1_codriver():
@@ -335,31 +518,31 @@ def get_v1_codriver():
     }
     
 # V2 Driver Information
-def get_v2_driver():
-    v2_name = input("Enter V2 driver name: ").strip()
-    v2_phone = input("Enter V2 phone number: ").strip()
-    driver_license = input("Enter V2 driver license number: ").strip()
-    license_state = input("Enter issuing state for driver license: ").strip()
-    license_expiry = input("Enter driver license expiry date (mm/dd/yyyy): ")
-    insurance_company = input("Enter V2 insurance company name: ").strip()
-    insurance_policy = input("Enter V2 insurance policy number: ").strip()
-    v2_injuries = get_yes_no("Is the driver or passenger(s) reporting injury? (y/n): ")
-    if v2_injuries:
-        injury_description = input("Describe V2 driver or passenger injury: ").strip()
-    else:
-        injury_description = None
+# def get_v2_driver():
+#     v2_name = input("Enter V2 driver name: ").strip()
+#     v2_phone = input("Enter V2 phone number: ").strip()
+#     driver_license = input("Enter V2 driver license number: ").strip()
+#     license_state = input("Enter issuing state for driver license: ").strip()
+#     license_expiry = input("Enter driver license expiry date (mm/dd/yyyy): ")
+#     insurance_company = input("Enter V2 insurance company name: ").strip()
+#     insurance_policy = input("Enter V2 insurance policy number: ").strip()
+#     v2_injuries = get_yes_no("Is the driver or passenger(s) reporting injury? (y/n): ")
+#     if v2_injuries:
+#         injury_description = input("Describe V2 driver or passenger injury: ").strip()
+#     else:
+#         injury_description = None
 
-    return {
-        "v2_name": v2_name,
-        "v2_phone": v2_phone,
-        "driver_license": driver_license,
-        "license_state": license_state,
-        "license_expiry": license_expiry,
-        "insurance_company": insurance_company,
-        "insurance_policy": insurance_policy,
-        "v2_injuries": v2_injuries,
-        "injury_description": injury_description,
-    }
+#     return {
+#         "v2_name": v2_name,
+#         "v2_phone": v2_phone,
+#         "driver_license": driver_license,
+#         "license_state": license_state,
+#         "license_expiry": license_expiry,
+#         "insurance_company": insurance_company,
+#         "insurance_policy": insurance_policy,
+#         "v2_injuries": v2_injuries,
+#         "injury_description": injury_description,
+#     }
     
 # Get V2 Passenger Information
 def get_v2_passengers():
@@ -379,98 +562,109 @@ def get_v2_passengers():
     return {"has_passengers": has_passengers, "passengers": passengers}
 
 # V2 Vehicle Information
-def get_v2_vehicle():
-    v2_plate_number = input("Enter V2 license plate number: ").strip()
-    v2_plate_state = input("Enter V2 license plate issuing state: ").strip()
-    v2_make = input("Enter V2 vehicle make (e.g., Toyota, Ford): ").strip()
-    v2_model = input("Enter V2 vehicle model (e.g., Camry, F-150): ").strip()
-    v2_year = input("Enter V2 vehicle year: ").strip()
-    v2_color = input("Enter V2 vehicle color: ").strip()
-    v2_damage_description = input("Describe damage to V2 vehicle: ").strip()
-    v2_tow_required = get_yes_no("Does V2 require towing? (y/n): ")
-    if v2_tow_required:
-        v2_tow_company = input("Enter towing company name: ").strip()
-        v2_tow_phone = input("Enter towing company phone number: ").strip()
-    else:
-        v2_tow_company = None
-        v2_tow_phone = None
+# def get_v2_vehicle():
+#     v2_plate_number = input("Enter V2 license plate number: ").strip()
+#     v2_plate_state = input("Enter V2 license plate issuing state: ").strip()
+#     v2_make = input("Enter V2 vehicle make (e.g., Toyota, Ford): ").strip()
+#     v2_model = input("Enter V2 vehicle model (e.g., Camry, F-150): ").strip()
+#     v2_year = input("Enter V2 vehicle year: ").strip()
+#     v2_color = input("Enter V2 vehicle color: ").strip()
+#     v2_damage_description = input("Describe damage to V2 vehicle: ").strip()
+#     v2_tow_required = get_yes_no("Does V2 require towing? (y/n): ")
+#     if v2_tow_required:
+#         v2_tow_company = input("Enter towing company name: ").strip()
+#         v2_tow_phone = input("Enter towing company phone number: ").strip()
+#     else:
+#         v2_tow_company = None
+#         v2_tow_phone = None
 
-    return {
-        "v2_plate_number": v2_plate_number,
-        "v2_plate_state": v2_plate_state,
-        "v2_make": v2_make,
-        "v2_model": v2_model,
-        "v2_year": v2_year,
-        "v2_color": v2_color,
-        "v2_damage_description": v2_damage_description,
-        "v2_tow_required": v2_tow_required,
-        "v2_tow_company": v2_tow_company,
-        "v2_tow_phone": v2_tow_phone,
-    }
+#     return {
+#         "v2_plate_number": v2_plate_number,
+#         "v2_plate_state": v2_plate_state,
+#         "v2_make": v2_make,
+#         "v2_model": v2_model,
+#         "v2_year": v2_year,
+#         "v2_color": v2_color,
+#         "v2_damage_description": v2_damage_description,
+#         "v2_tow_required": v2_tow_required,
+#         "v2_tow_company": v2_tow_company,
+#         "v2_tow_phone": v2_tow_phone,
+#     }
 
 # Additional Remarks Section
 def get_additional_remarks():
     remarks = input("Enter any additional remarks or observations (Press Enter to skip): ").strip()
     return remarks if remarks else "No additional remarks provided."
 
-# Collect Accident Data
+# ANSWER QUESTIONS AND GENERATE REPORT
+
 def collect_accident_data():
     accident_data = {}
 
-    # Company Information
+    # Collect Company Information
     accident_data["company_info"] = get_company_info()
-    # Basic Accident Info
+
+    # Collect Accident Information
     accident_data["accident_date"] = get_date("Enter accident date (MM/DD/YYYY): ")
-    accident_data["accident_time"] = get_time()  # Existing time validation
+    accident_data["accident_time"] = get_time()
     accident_data["accident_location"] = input("Enter accident location or address: ").strip()
     accident_data["hazmat"] = get_yes_no("Hazmat? (y/n): ")
-    accident_data["v1_driver"] = get_v1_driver()
-    accident_data["v1_codriver"] = get_v1_codriver()
-    accident_data["v2_driver"] = get_v2_driver()
-    accident_data["v2_vehicle"] = get_v2_vehicle()
 
-    # V2 Passenger Information
+    # Collect V1 Driver Information
+    print("\n--- V1 Driver Details ---")
+    v1_driver = get_driver()
+    if not v1_driver:
+        print("Error: Unable to collect V1 driver information.")
+        return
+    accident_data["v1_driver"] = v1_driver
+
+    # Collect V1 Vehicle Information
+    print("\n--- V1 Vehicle Details ---")
+    v1_vehicle = get_vehicle()
+    if not v1_vehicle:
+        print("Error: Unable to collect V1 vehicle information.")
+        return
+    accident_data["v1_vehicle"] = v1_vehicle
+
+    # Collect V2 Driver Information
+    print("\n--- V2 Driver Details ---")
+    v2_driver = get_driver()
+    if not v2_driver:
+        print("Error: Unable to collect V2 driver information.")
+        return
+    accident_data["v2_driver"] = v2_driver
+
+    # Collect V2 Vehicle Information
+    print("\n--- V2 Vehicle Details ---")
+    v2_vehicle = get_vehicle()
+    if not v2_vehicle:
+        print("Error: Unable to collect V2 vehicle information.")
+        return
+    accident_data["v2_vehicle"] = v2_vehicle
+
+    # Additional Data
     accident_data["v2_passengers"] = get_v2_passengers()
-
-    # Weather and Road Conditions
     accident_data["weather_info"] = get_condition("weather_conditions", ['Clear', 'Overcast', 'Sunny', 'Rainy', 'Windy', 'Stormy'])
     accident_data["road_conditions"] = get_condition("road_conditions", ['Wet', 'Dry', 'Snowy', 'Icy'])
 
-    # Police Information
+    # Police and Tow Information
     accident_data["police_involvement"] = get_yes_no("Police involved? (y/n): ")
     if accident_data["police_involvement"]:
         accident_data["police_department"] = input("Enter name of police department: ").strip()
         accident_data["police_officer"] = input("Enter name of officer: ").strip()
         accident_data["police_badge"] = input("Enter badge number or None: ").strip()
         accident_data["police_report"] = input("Enter police report number or case number: ").strip()
-    else:
-        accident_data["police_department"] = None
-        accident_data["police_officer"] = None
-        accident_data["police_badge"] = None
-        accident_data["police_report"] = None
 
-    # Tow Company Information
     accident_data["tow_required"] = get_yes_no("Is a tow service required? (y/n): ")
     if accident_data["tow_required"]:
-        accident_data["tow_disabling"] = get_yes_no("Is one or more vehicles considered disabled? (y/n): ")
         accident_data["tow_company_name"] = input("Enter tow company name: ").strip()
         accident_data["tow_company_phone"] = validate_phone("Enter tow company phone number: ")
         accident_data["tow_company_address"] = input("Enter tow company yard address: ").strip()
-    else:
-        accident_data["tow_disabling"] = None
-        accident_data["tow_company_name"] = None
-        accident_data["tow_company_phone"] = None
-        accident_data["tow_company_address"] = None
 
-    # Truck and Trailer Information
-    accident_data["truck_info"] = get_truck()
-    accident_data["trailer_info"] = get_trailer()
-
-    # Load Information
-    accident_data["load_info"] = load_information()
     accident_data["additional_remarks"] = get_additional_remarks()
 
     return accident_data
+
 
 def main():
     try:
