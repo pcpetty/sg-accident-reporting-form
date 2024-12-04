@@ -5,6 +5,7 @@ from psycopg2.extras import Json
 import json
 import datetime
 from utils import input_with_default
+
 # Connect to PostgreSQL
 def connect_postgresql():
     try:
@@ -42,16 +43,15 @@ def insert_into_postgresql(data):
             print("Attempting to insert data into the database...")
             # Serialize data with custom handling for JSONB
             cursor.execute(
-                "INSERT INTO accident_reports (reference_key, report_data) VALUES (%s, %s)",
-                [data["reference_key"], Json(data, dumps=custom_serializer)]
-            )
+    "INSERT INTO accident_reports (reference_key, report_data) VALUES (%s, %s)",
+    [data["reference_key"], Json(data)]
+    )
         conn.commit()  # Commit the transaction
         print("Data successfully saved to PostgreSQL.")
     except Exception as e:
         print(f"Error saving to PostgreSQL: {e}")
     finally:
         conn.close()  # Always close the connection
-
 
 # ---- DRIVER ID INTEGRATION ---- #
 # Insert or Get Driver ID
@@ -64,25 +64,27 @@ def get_or_create_driver(name, phone, license_number, license_expiry):
     if not conn:
         print("Database connection failed.")
         return None
+
     try:
         with conn.cursor() as cursor:
             # Check if the driver already exists
             cursor.execute(
                 """
-                SELECT id FROM drivers
-                WHERE name = %s AND phone = %s
+                SELECT driver_id FROM drivers
+                WHERE name = %s AND (phone_number = %s OR phone_number IS NULL)
                 """,
                 (name, phone),
             )
             result = cursor.fetchone()
             if result:
                 return result[0]  # Return existing driver ID
+
             # Insert a new driver if not found
             cursor.execute(
                 """
-                INSERT INTO drivers (name, phone, license_number, license_expiry)
+                INSERT INTO drivers (name, phone_number, license_number, license_expiry)
                 VALUES (%s, %s, %s, %s)
-                RETURNING id
+                RETURNING driver_id
                 """,
                 (name, phone, license_number, license_expiry),
             )
@@ -93,6 +95,7 @@ def get_or_create_driver(name, phone, license_number, license_expiry):
         return None
     finally:
         conn.close()
+
 
 # Insert or Get Vehicle ID
 def get_or_create_vehicle(plate_number, make, model, year, color):
@@ -180,3 +183,42 @@ def edit_report_field(report):
             report[key] = new_value
     return report
 # ---- ASSET ID INTEGRATION ---- # 
+def fetch_driver_name(driver_id):
+    """
+    Fetches the driver's name from the database using the driver_id.
+    """
+    conn = connect_postgresql()
+    if not conn:
+        print("Database connection failed.")
+        return None
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT name FROM drivers WHERE driver_id = %s", (driver_id,))
+            result = cursor.fetchone()
+            return result[0] if result else "Unknown"
+    except Exception as e:
+        print(f"Error fetching driver name: {e}")
+        return "Unknown"
+    finally:
+        conn.close()
+
+def fetch_vehicle_plate(vehicle_id):
+    """
+    Fetches the vehicle's plate from the database using the vehicle_id.
+    """
+    conn = connect_postgresql()
+    if not conn:
+        print("Database connection failed.")
+        return None
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT license_plate FROM vehicles WHERE vehicle_id = %s", (vehicle_id,))
+            result = cursor.fetchone()
+            return result[0] if result else "Unknown"
+    except Exception as e:
+        print(f"Error fetching vehicle plate: {e}")
+        return "Unknown"
+    finally:
+        conn.close()

@@ -24,24 +24,28 @@ Please see the [Security Policy](SECURITY) for reporting vulnerabilities.
 ---
 
 ## **File Structure**
+```
 sg_accident_form/
 │
-├── sg_accident_form/         # Package directory
-│   ├── __init__.py           # Makes this a package
-│   ├── main.py               # Entry point for the program
-│   ├── data_collection.py    # Data collection functions
-│   ├── db_operations.py      # PostgreSQL operations
-│   ├── report_generation.py  # Report exporting functions
-│   ├── utils.py              # Helper functions
+├── sg_accident_form/       # Main package directory
+│   ├── __init__.py         # Initialize the package
+│   ├── main.py             # Main execution script
+│   ├── data_collection.py  # Functions for data collection
+│   ├── db_operations.py    # Database interaction functions
+│   ├── report_generation.py # PDF/Excel export functions
+│   └── utils.py            # Utility functions
 │
-├── tests/                    # Tests for the package
-│   ├── __init__.py           # Makes this a package
+├── tests/                  # Optional: Unit tests
 │   ├── test_data_collection.py
 │   ├── test_db_operations.py
-│   ├── test_report_generation.py
+│   └── test_report_generation.py
 │
-├── requirements.txt          # List of dependencies
-├── setup.py                  # Packaging configuration
-└── README.md                 # Documentation
+├── LICENSE                 # License file
+├── README.md               # Project documentation
+├── SECURITY.md             # Security information
+├── requirements.txt        # Python dependencies
+├── setup.py                # Setup script for packaging
+├── pyproject.toml          # Optional: Modern build system configuration
+└── .gitignore              # Git ignore file
 
 ```

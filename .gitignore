@@ -16,3 +16,8 @@ sgvenv
 build/
 dist/
 *.egg-info/
+
+
+# .gitignore
+*.xlsx
+*.pdf

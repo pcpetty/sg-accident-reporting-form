@@ -1,52 +1,42 @@
 {
     "company_info": {
-        "is_faf": true,
-        "faf_branch": null
+        "is_faf": false,
+        "carrier": ""
     },
-    "accident_date": "1997-01-10",
-    "accident_time": "10:20",
-    "accident_location": "234",
+    "accident_date": null,
+    "accident_time": "",
+    "accident_location": "",
     "hazmat": false,
+    "driver_id": 3,
     "v1_driver": {
-        "driver_id": 1,
-        "driver_name": "bob",
-        "driver_phone": "6",
-        "license_number": "4",
-        "license_expiry": "2020-01-01"
+        "driver_id": 3,
+        "driver_name": "Unknown",
+        "driver_phone": "N/A",
+        "license_number": null,
+        "license_expiry": null,
+        "driver_injury": false
     },
-    "v1_vehicle": {
-        "vehicle_id": 1,
-        "plate_number": "1",
-        "make": "1",
-        "model": "1",
-        "year": "1",
-        "color": "1"
+    "v1_codriver": {
+        "codriver_present": false
     },
+    "v1_vehicle": null,
     "v2_driver": {
-        "driver_id": 2,
-        "driver_name": "1",
-        "driver_phone": "1",
-        "license_number": "1",
-        "license_expiry": "0101-01-01"
+        "driver_id": 3,
+        "driver_name": "Unknown",
+        "driver_phone": "N/A",
+        "license_number": null,
+        "license_expiry": null,
+        "driver_injury": false
     },
-    "v2_vehicle": {
-        "vehicle_id": 2,
-        "plate_number": "10",
-        "make": "10",
-        "model": "10",
-        "year": "10",
-        "color": "10"
-    },
+    "v2_vehicle": null,
     "trailer_info": {
         "trailer_connected": false
     },
     "load_info": {
-        "manifest_number": "0000000",
-        "origin": "lax",
-        "destination": "dfw"
+        "manifest_number": false
     },
-    "weather_info": null,
-    "road_conditions": null,
+    "weather_info": "Clear",
+    "road_conditions": "Dry",
     "police_info": {
         "police_involvement": false,
         "police_department": null,
@@ -62,5 +52,5 @@
         "tow_company_address": null
     },
     "additional_remarks": "No additional remarks provided.",
-    "reference_key": "FLT0000007"
+    "reference_key": "FLT0000013"
 }

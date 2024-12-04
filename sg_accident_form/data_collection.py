@@ -46,6 +46,15 @@ def get_vehicle():
     make = input("Vehicle make (e.g., Toyota, Ford): ").strip()
     model = input("Vehicle model (e.g., Camry, F-150): ").strip()
     year = input("Vehicle year: ").strip()
+    vehicle_year = input("Vehicle year (Press Enter to skip): ").strip()
+    if not vehicle_year:
+        vehicle_year = None  # Allow skipping
+    else:
+        try:
+            vehicle_year = int(vehicle_year)
+        except ValueError:
+            vehicle_year = None  # Handle invalid input gracefully
+
     color = input("Vehicle color: ").strip()
     # Use or create vehicle in the database
     vehicle_id = get_or_create_vehicle(plate_number, make, model, year, color)
@@ -193,6 +202,9 @@ def collect_accident_data():
     accident_data["hazmat"] = get_yes_no("Hazmat involved? (y/n): ")
     # Collect V1 driver and vehicle information
     print("\n--- V1 Driver Details ---")
+    driver_info = get_driver()
+    if driver_info:
+        accident_data["driver_id"] = driver_info["driver_id"]
     accident_data["v1_driver"] = get_driver()
     accident_data["v1_codriver"] = v1_codriver()
     print("\n--- V1 Vehicle Details ---")
