@@ -1,7 +1,7 @@
 from data_collection import collect_accident_data
-from sg_accident_form.db_operations import insert_into_postgresql, get_next_flt_number, edit_report_field, load_report
-from sg_accident_form.report_generation import save_to_json, export_to_excel, export_to_pdf
-from sg_accident_form.utils import get_yes_no, input_with_default
+from db_operations import insert_into_postgresql, get_next_flt_number, edit_report_field, load_report
+from report_generation import save_to_json, export_to_excel, export_to_pdf
+from utils import get_yes_no, input_with_default
 
 def tutorial():
     """

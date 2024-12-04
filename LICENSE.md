@@ -4,7 +4,7 @@ Copyright (c) [2024] [Phillip Cole Petty]
 
 All rights reserved.
 
-This software and its associated documentation files (the "Software") are the sole property of [Phillip Cole Petty] ("Owner"). Unauthorized use, duplication, modification, or distribution of this Software is strictly prohibited without prior written permission from the Owner.
+This software and its associated documentation files (the "Software") are the sole intellectual property of [Phillip Cole Petty] ("Owner"). Unauthorized use, duplication, modification, or distribution of this Software is strictly prohibited without prior written permission from the Owner. By using this software, you agree to the terms outlined in this license and understand that [Phillip Cole Petty] retains all rights to the software unless otherwise stated in a written agreement.
 
 ## Usage Terms
 1. **Personal and Commercial Use**: 

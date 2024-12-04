@@ -4,7 +4,7 @@ import psycopg2
 from psycopg2.extras import Json
 import json
 import datetime
-from sg_accident_form.utils import input_with_default
+from utils import input_with_default
 # Connect to PostgreSQL
 def connect_postgresql():
     try:
@@ -22,37 +22,36 @@ def connect_postgresql():
 
 # Insert Report into PostgreSQL
 def insert_into_postgresql(data):
+    """
+    Inserts the accident report data into the PostgreSQL database.
+    Handles serialization for unsupported data types like datetime and sets.
+    """
+    # Custom serializer for JSON
     def custom_serializer(obj):
         if isinstance(obj, (datetime.date, datetime.datetime)):
             return obj.isoformat()
         elif isinstance(obj, set):
             return list(obj)
         raise TypeError(f"Type {type(obj)} not serializable")
-
-    conn = connect_postgresql()
+    conn = connect_postgresql()  # Connect to the PostgreSQL database
     if conn is None:
         print("Failed to connect to PostgreSQL. Data not saved.")
         return
-
     try:
         with conn.cursor() as cursor:
-            # Ensure data is JSON-serializable
-            json_data = json.dumps(data, default=custom_serializer)
-
-            # Insert into the database
+            print("Attempting to insert data into the database...")
+            # Serialize data with custom handling for JSONB
             cursor.execute(
-                """
-                INSERT INTO accident_reports (reference_key, report_data)
-                VALUES (%s, %s)
-                """,
-                (data["reference_key"], Json(json.loads(json_data)))
+                "INSERT INTO accident_reports (reference_key, report_data) VALUES (%s, %s)",
+                [data["reference_key"], Json(data, dumps=custom_serializer)]
             )
-        conn.commit()
+        conn.commit()  # Commit the transaction
         print("Data successfully saved to PostgreSQL.")
     except Exception as e:
         print(f"Error saving to PostgreSQL: {e}")
     finally:
-        conn.close()
+        conn.close()  # Always close the connection
+
 
 # ---- DRIVER ID INTEGRATION ---- #
 # Insert or Get Driver ID

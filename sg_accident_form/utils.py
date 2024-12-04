@@ -48,18 +48,17 @@ def get_yes_no(prompt, default="no"):
 
 # Reusable function for selecting conditions
 def get_condition(condition_type, choices):
+    """
+    Provides a selection prompt for specific conditions.
+    """
     try:
-        questions = [
-            questionary.List(
-                condition_type,
-                message=f"Choose {condition_type.replace('_', ' ')}:",
-                choices=choices + ['Custom'],
-            ),
-        ]
-        answers = questionary.prompt(questions)
-        if answers[condition_type] == "Custom":
+        choice = questionary.select(
+            f"Choose {condition_type.replace('_', ' ')}:",
+            choices=choices + ['Custom']
+        ).ask()
+        if choice == "Custom":
             return input(f"Enter custom {condition_type.replace('_', ' ')}: ").strip()
-        return answers[condition_type]
+        return choice
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
@@ -76,14 +75,21 @@ def validate_phone(prompt):
 def validate_license_plate(prompt):
     while True:
         plate = input(prompt).strip()
+        if not plate:
+            return None
         if re.match(r'^[A-Z0-9]{1,8}$', plate):  # Allows up to 8 alphanumeric characters
-            return plate
+            try:
+                return plate
+            except ValueError:
+                pass
         print("Invalid license plate. Please enter a valid license plate (e.g., ABC1234).")
 
 # Regex validation for date (MM/DD/YYYY)
 def validate_date(prompt):
     while True:
-        date_str = input(prompt).strip()
+        date_str = input(f"{prompt} (Press Enter to skip): ").strip()
+        if not date_str:  # Allow skipping
+            return None
         if re.match(r'^\d{2}/\d{2}/\d{4}$', date_str):
             try:
                 return datetime.datetime.strptime(date_str, "%m/%d/%Y").date()

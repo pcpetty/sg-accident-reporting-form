@@ -1,33 +1,47 @@
 # SG Accident Report Data Collection Functions
 
 # Import Libraries and Modules
-from sg_accident_form.utils import get_yes_no, validate_date, get_condition, input_with_default
-from sg_accident_form.db_operations import get_or_create_driver, get_or_create_vehicle
+from utils import get_yes_no, validate_date, get_condition, input_with_default
+from db_operations import get_or_create_driver, get_or_create_vehicle
 
-# Driver Info
 def get_driver():
     """
     Collects or retrieves driver details and ensures the driver exists in the database.
+    Allows optional skipping of license information and ensures driver creation.
     """
     print("\n--- Enter Driver Details ---")
-    driver_name = input("Driver name: ").strip()
-    driver_phone = input("Driver phone number: ").strip()
-    license_number = input("Driver license number: ").strip()
-    license_expiry = validate_date("License expiry date (MM/DD/YYYY): ")
 
-    # Use or create driver in the database
+    # Collect driver details with optional skipping
+    driver_name = input("Driver name (Press Enter to skip): ").strip()
+    driver_name = driver_name if driver_name else "Unknown"  # Default value if skipped
+
+    driver_phone = input("Driver phone number (Press Enter to skip): ").strip()
+    driver_phone = driver_phone if driver_phone else "N/A"  # Default value if skipped
+
+    license_number = input("Driver license number (Press Enter to skip): ").strip()
+    license_number = license_number if license_number else None  # Optional field
+
+    license_expiry = validate_date("License expiry date (MM/DD/YYYY) (Press Enter to skip): ")
+    license_expiry = license_expiry if license_expiry else None  # Optional field
+
+    driver_injury = get_yes_no(f"Is {driver_name} injured? (y/n)") if driver_name != "Unknown" else False
+
+    # Attempt to retrieve or create driver in the database
     driver_id = get_or_create_driver(driver_name, driver_phone, license_number, license_expiry)
     if not driver_id:
         print("Error: Could not retrieve or create driver.")
         return None
 
+    # Return all collected driver details, including database ID
     return {
         "driver_id": driver_id,
         "driver_name": driver_name,
         "driver_phone": driver_phone,
         "license_number": license_number,
         "license_expiry": license_expiry,
+        "driver_injury": driver_injury,
     }
+
     
 def get_vehicle():
     """
@@ -172,9 +186,6 @@ def get_additional_remarks():
     remarks = input("Enter any additional remarks or observations (Press Enter to skip): ").strip()
     return remarks if remarks else "No additional remarks provided."
 
-from sg_accident_form.utils import get_yes_no, validate_date
-from sg_accident_form.db_operations import get_or_create_driver, get_or_create_vehicle
-
 def collect_accident_data():
     """
     Orchestrates the collection of all accident-related data.
@@ -186,7 +197,7 @@ def collect_accident_data():
     accident_data["company_info"] = get_company_info()
 
     # Collect accident basics
-    accident_data["accident_date"] = validate_date("Enter accident date (MM/DD/YYYY): ")
+    accident_data["accident_date"] = validate_date("Enter accident date (MM/DD/YYYY)")
     accident_data["accident_time"] = input("Enter accident time (HH:MM): ").strip()
     accident_data["accident_location"] = input("Enter accident location or address: ").strip()
     accident_data["hazmat"] = get_yes_no("Hazmat involved? (y/n): ")
@@ -194,6 +205,7 @@ def collect_accident_data():
     # Collect V1 driver and vehicle information
     print("\n--- V1 Driver Details ---")
     accident_data["v1_driver"] = get_driver()
+    accident_data["v1_codriver"] = v1_codriver()
 
     print("\n--- V1 Vehicle Details ---")
     accident_data["v1_vehicle"] = get_vehicle()
