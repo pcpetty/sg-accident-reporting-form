@@ -6,7 +6,7 @@ from openpyxl.styles import Font, Alignment
 import json
 from openpyxl.chart import BarChart, Reference
 import datetime
-from db_operations import fetch_driver_name, fetch_vehicle_plate
+from .db_operations import fetch_driver_name, fetch_vehicle_plate
 from fpdf import FPDF
 
 def export_to_excel(data, filename="Accident_Report.xlsx"):
@@ -52,9 +52,6 @@ def export_to_excel(data, filename="Accident_Report.xlsx"):
     print(f"Excel report saved as {filename}.")
 
 # ---- EXPORT TO PDF ----#
-
-from fpdf import FPDF
-
 def export_to_pdf(data, filename="Accident_Report.pdf"):
     """
     Exports the accident report to a structured PDF format.

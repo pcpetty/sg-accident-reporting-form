@@ -1,8 +1,8 @@
 # SG Accident Report Data Collection Functions
 
 # Import Libraries and Modules
-from utils import get_yes_no, validate_date, get_condition, input_with_default
-from db_operations import get_or_create_driver, get_or_create_vehicle
+from .utils import get_yes_no, validate_date, get_condition, input_with_default
+from .db_operations import get_or_create_driver, get_or_create_vehicle
 
 def get_driver():
     """
@@ -36,7 +36,6 @@ def get_driver():
         "driver_injury": driver_injury,
     }
 
-    
 def get_vehicle():
     """
     Collects or retrieves vehicle details and ensures the vehicle exists in the database.
@@ -181,7 +180,6 @@ def get_tow_information():
         }
     return tow_data
 
-
 # Additional Remarks Section
 def get_additional_remarks():
     remarks = input("Enter any additional remarks or observations (Press Enter to skip): ").strip()
@@ -229,5 +227,4 @@ def collect_accident_data():
     accident_data["tow_info"] = get_tow_information()
     # Additional remarks
     accident_data["additional_remarks"] = get_additional_remarks()
-
     return accident_data

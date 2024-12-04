@@ -4,7 +4,7 @@ import psycopg2
 from psycopg2.extras import Json
 import json
 import datetime
-from utils import input_with_default
+from .utils import input_with_default
 
 # Connect to PostgreSQL
 def connect_postgresql():
@@ -96,7 +96,6 @@ def get_or_create_driver(name, phone, license_number, license_expiry):
     finally:
         conn.close()
 
-
 # Insert or Get Vehicle ID
 def get_or_create_vehicle(plate_number, make, model, year, color):
     conn = connect_postgresql()
@@ -129,7 +128,6 @@ def get_or_create_vehicle(plate_number, make, model, year, color):
         conn.close()
         
 # ---- FLT---- #
-
 def get_next_flt_number():
     conn = connect_postgresql()
     if conn is None:
@@ -182,6 +180,7 @@ def edit_report_field(report):
         if new_value != value:
             report[key] = new_value
     return report
+
 # ---- ASSET ID INTEGRATION ---- # 
 def fetch_driver_name(driver_id):
     """
