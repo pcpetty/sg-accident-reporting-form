@@ -4,7 +4,7 @@ import psycopg2
 from psycopg2.extras import Json
 import json
 import datetime
-from utils import input_with_default
+from sg_accident_form.utils import input_with_default
 # Connect to PostgreSQL
 def connect_postgresql():
     try:

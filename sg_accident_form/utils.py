@@ -2,7 +2,7 @@
 
 # Import Libraries and Modules
 import datetime
-import inquirer
+import questionary
 import json
 import PyQt6
 import re
@@ -50,13 +50,13 @@ def get_yes_no(prompt, default="no"):
 def get_condition(condition_type, choices):
     try:
         questions = [
-            inquirer.List(
+            questionary.List(
                 condition_type,
                 message=f"Choose {condition_type.replace('_', ' ')}:",
                 choices=choices + ['Custom'],
             ),
         ]
-        answers = inquirer.prompt(questions)
+        answers = questionary.prompt(questions)
         if answers[condition_type] == "Custom":
             return input(f"Enter custom {condition_type.replace('_', ' ')}: ").strip()
         return answers[condition_type]

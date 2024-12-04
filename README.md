@@ -13,6 +13,16 @@ The Safety Generalist Accident Reporting System is a Python-based tool designed 
 
 ---
 
+## License
+This program is proprietary software owned by [Phillip Cole Petty]. Unauthorized use, duplication, or modification is strictly prohibited.
+
+For licensing inquiries, please contact: [colepetty57@gmail.com]
+
+## Security
+Please see the [Security Policy](SECURITY) for reporting vulnerabilities.
+
+---
+
 ## **File Structure**
 sg_accident_form/
 │

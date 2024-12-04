@@ -1,0 +1,16 @@
+# Python bytecode and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+
+# VSCode settings
+.vscode/
+
+# Build and distribution folders
+build/
+dist/
+*.egg-info/
