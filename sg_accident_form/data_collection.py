@@ -10,20 +10,15 @@ def get_driver():
     Allows optional skipping of license information and ensures driver creation.
     """
     print("\n--- Enter Driver Details ---")
-
     # Collect driver details with optional skipping
     driver_name = input("Driver name (Press Enter to skip): ").strip()
     driver_name = driver_name if driver_name else "Unknown"  # Default value if skipped
-
     driver_phone = input("Driver phone number (Press Enter to skip): ").strip()
     driver_phone = driver_phone if driver_phone else "N/A"  # Default value if skipped
-
     license_number = input("Driver license number (Press Enter to skip): ").strip()
     license_number = license_number if license_number else None  # Optional field
-
     license_expiry = validate_date("License expiry date (MM/DD/YYYY) (Press Enter to skip): ")
     license_expiry = license_expiry if license_expiry else None  # Optional field
-
     driver_injury = get_yes_no(f"Is {driver_name} injured? (y/n)") if driver_name != "Unknown" else False
 
     # Attempt to retrieve or create driver in the database
@@ -31,7 +26,6 @@ def get_driver():
     if not driver_id:
         print("Error: Could not retrieve or create driver.")
         return None
-
     # Return all collected driver details, including database ID
     return {
         "driver_id": driver_id,
@@ -53,13 +47,11 @@ def get_vehicle():
     model = input("Vehicle model (e.g., Camry, F-150): ").strip()
     year = input("Vehicle year: ").strip()
     color = input("Vehicle color: ").strip()
-
     # Use or create vehicle in the database
     vehicle_id = get_or_create_vehicle(plate_number, make, model, year, color)
     if not vehicle_id:
         print("Error: Could not retrieve or create vehicle.")
         return None
-
     return {
         "vehicle_id": vehicle_id,
         "plate_number": plate_number,
@@ -192,49 +184,37 @@ def collect_accident_data():
     Returns a dictionary containing the collected information.
     """
     accident_data = {}
-
     # Collect company information
     accident_data["company_info"] = get_company_info()
-
     # Collect accident basics
     accident_data["accident_date"] = validate_date("Enter accident date (MM/DD/YYYY)")
     accident_data["accident_time"] = input("Enter accident time (HH:MM): ").strip()
     accident_data["accident_location"] = input("Enter accident location or address: ").strip()
     accident_data["hazmat"] = get_yes_no("Hazmat involved? (y/n): ")
-
     # Collect V1 driver and vehicle information
     print("\n--- V1 Driver Details ---")
     accident_data["v1_driver"] = get_driver()
     accident_data["v1_codriver"] = v1_codriver()
-
     print("\n--- V1 Vehicle Details ---")
     accident_data["v1_vehicle"] = get_vehicle()
-
     # Collect V2 driver and vehicle information
     print("\n--- V2 Driver Details ---")
     accident_data["v2_driver"] = get_driver()
-
     print("\n--- V2 Vehicle Details ---")
     accident_data["v2_vehicle"] = get_vehicle()
-
     # Collect trailer and load information
     print("\n--- Trailer Information ---")
     accident_data["trailer_info"] = get_trailer()
-
     print("\n--- Load Information ---")
     accident_data["load_info"] = load_information()
-
     # Collect weather and road conditions
     accident_data["weather_info"] = get_condition("weather_conditions", ['Clear', 'Overcast', 'Rainy', 'Windy', 'Snowy'])
     accident_data["road_conditions"] = get_condition("road_conditions", ['Dry', 'Wet', 'Icy', 'Snowy'])
-
     # Collect police and tow information
     print("\n--- Police Information ---")
     accident_data["police_info"] = get_police_information()
-
     print("\n--- Tow Information ---")
     accident_data["tow_info"] = get_tow_information()
-
     # Additional remarks
     accident_data["additional_remarks"] = get_additional_remarks()
 

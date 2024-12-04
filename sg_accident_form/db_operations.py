@@ -56,35 +56,44 @@ def insert_into_postgresql(data):
 # ---- DRIVER ID INTEGRATION ---- #
 # Insert or Get Driver ID
 def get_or_create_driver(name, phone, license_number, license_expiry):
+    """
+    Retrieves a driver from the database if they exist, or creates a new one.
+    Returns the driver's database ID.
+    """
     conn = connect_postgresql()
     if not conn:
+        print("Database connection failed.")
         return None
     try:
         with conn.cursor() as cursor:
-            # Check if driver exists
-            cursor.execute(
-                "SELECT driver_id FROM drivers WHERE license_number = %s",
-                (license_number,)
-            )
-            driver = cursor.fetchone()
-            if driver:
-                return driver[0]
-
-            # Insert new driver
+            # Check if the driver already exists
             cursor.execute(
                 """
-                INSERT INTO drivers (name, phone_number, license_number, license_expiry)
-                VALUES (%s, %s, %s, %s) RETURNING driver_id
+                SELECT id FROM drivers
+                WHERE name = %s AND phone = %s
                 """,
-                (name, phone, license_number, license_expiry)
+                (name, phone),
+            )
+            result = cursor.fetchone()
+            if result:
+                return result[0]  # Return existing driver ID
+            # Insert a new driver if not found
+            cursor.execute(
+                """
+                INSERT INTO drivers (name, phone, license_number, license_expiry)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id
+                """,
+                (name, phone, license_number, license_expiry),
             )
             conn.commit()
-            return cursor.fetchone()[0]
+            return cursor.fetchone()[0]  # Return new driver ID
     except Exception as e:
-        print(f"Error handling driver data: {e}")
+        print(f"Error in get_or_create_driver: {e}")
+        return None
     finally:
         conn.close()
-        
+
 # Insert or Get Vehicle ID
 def get_or_create_vehicle(plate_number, make, model, year, color):
     conn = connect_postgresql()
@@ -123,22 +132,17 @@ def get_next_flt_number():
     if conn is None:
         print("Failed to connect to PostgreSQL for FLT number generation.")
         return None
-
     try:
         with conn.cursor() as cursor:
             # Retrieve the last number
             cursor.execute("SELECT last_number FROM flt_sequence LIMIT 1;")
             last_number = cursor.fetchone()[0]
-
             # Increment the number
             next_number = last_number + 1
-
             # Update the sequence table
             cursor.execute("UPDATE flt_sequence SET last_number = %s;", (next_number,))
-
             # Commit the change
             conn.commit()
-
             # Format the number as FLT########
             return f"FLT{next_number:07d}"
     except psycopg2.errors.InsufficientPrivilege as e:
@@ -156,7 +160,6 @@ def load_report(flt_number, filename="accident_report.json"):
     try:
         with open(filename, "r") as file:
             data = json.load(file)
-
         # Find the report by FLT number
         for report in data:
             if report.get("reference_key") == flt_number:

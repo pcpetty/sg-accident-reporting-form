@@ -6,7 +6,9 @@ __pycache__/
 
 # Virtual environment
 .venv/
-
+.sgvenv/
+sgvenv
+./sgvenv/
 # VSCode settings
 .vscode/
 
